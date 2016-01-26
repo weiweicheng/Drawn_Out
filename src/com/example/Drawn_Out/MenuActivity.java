@@ -5,7 +5,7 @@ import android.os.Bundle;
 import com.parse.Parse;
 import com.parse.ParseObject;
 
-public class MyActivity extends Activity {
+public class MenuActivity extends Activity {
     /**
      * Called when the activity is first created.
      */
