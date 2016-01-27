@@ -3,17 +3,11 @@
               android:orientation="vertical"
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
-        >
+>
     <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="Placeholder Text"
-            />
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Create Game"
-            android:onClick="createGame"
-            android:id="@+id/button" android:layout_gravity="center_horizontal"/>
+    />
 </LinearLayout>
 
