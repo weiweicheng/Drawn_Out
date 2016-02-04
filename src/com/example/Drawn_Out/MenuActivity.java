@@ -20,4 +20,9 @@ public class MenuActivity extends Activity {
         Intent intent = new Intent(this, CreateGameActivity.class);
         startActivity(intent);
     }
+
+    public void joinGame(View view) {
+        Intent intent = new Intent(this, JoinGameActivity.class);
+        startActivity(intent);
+    }
 }
