@@ -5,9 +5,24 @@
               android:layout_height="fill_parent"
 >
     <TextView
+            android:id="@+id/numOfPlayers"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Placeholder Text"
+            android:text="Current number of players waiting: 0"
+            android:textSize="25dp"
     />
+    <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="At least two other players are needed to start a game."
+    />
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start Game"
+            android:onClick="startGame"
+            android:clickable="false"
+            android:id="@+id/startGameButton" android:layout_gravity="center_horizontal"/>
+
 </LinearLayout>
 
