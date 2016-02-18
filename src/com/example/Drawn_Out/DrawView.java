@@ -2,6 +2,7 @@ package com.example.Drawn_Out;
 
 import android.content.Context;
 import android.graphics.*;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -15,7 +16,20 @@ public class DrawView extends View {
 
     public DrawView(Context c) {
         super(c);
+        init(c);
+    }
 
+    public DrawView(Context c, AttributeSet attrs) {
+        super(c, attrs);
+        init(c);
+    }
+
+    public DrawView(Context c, AttributeSet attrs, int defStyle) {
+        super(c, attrs, defStyle);
+        init(c);
+    }
+
+    private void init(Context c) {
         mPath = new Path();
         mBitmapPaint = new Paint(Paint.DITHER_FLAG);
 
@@ -97,4 +111,9 @@ public class DrawView extends View {
         invalidate();
         System.gc();
     }
+
+    public Bitmap getBitmap() {
+        return mBitmap;
+    }
+
 }
