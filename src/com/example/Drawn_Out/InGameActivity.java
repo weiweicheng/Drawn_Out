@@ -7,26 +7,35 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import com.example.Drawn_Out.entities.Game;
 import com.parse.*;
 
 import java.io.ByteArrayOutputStream;
 
 public class InGameActivity extends Activity {
 
-    private Game game;
+    private String gameId;
+    private String username;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //DrawView view = new DrawView(this);
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            gameId = extras.getString("gameId");
+            username = extras.getString("username");
+        }
 
-        // create game object here!! :o
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.in_game);
-        Parse.initialize(this);
+        if(username.equals(getCurrentArtist())) {
+            //If drawing
+            setContentView(R.layout.in_game);
+            //If waiting
+        } else {
+            //If drawing
+            //If waiting
+        }
     }
 
     public void submitDrawing(View view) {
@@ -38,17 +47,29 @@ public class InGameActivity extends Activity {
         Log.i("InGameActivity", "Finished converting image to byte array of size " + data.length);
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Game");
-        query.whereEqualTo("Id", game.getId());
-        ParseObject cloudGame;
+        query.whereEqualTo("Id", gameId);
 
         try {
-            cloudGame = query.find().get(0);
+            ParseObject cloudGame = query.find().get(0);
             ParseFile file = new ParseFile(data);
             cloudGame.put("CurrentPicture", file);
             cloudGame.save();
         } catch (ParseException ex) {
             Log.e("InGameActivity", ex.getMessage());
         }
+    }
+
+    private String getCurrentArtist() {
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Game");
+        query.whereEqualTo("Id", gameId);
+        try {
+            ParseObject cloudGame = query.find().get(0);
+            return (String) cloudGame.get("CurrentArtist");
+
+        }  catch (ParseException ex) {
+            Log.e("InGameActivity", ex.getMessage());
+        }
+        return null;
     }
 
 }
