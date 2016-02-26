@@ -58,6 +58,7 @@ public class CreateGameActivity extends Activity {
         newGame.put("GamePhase", localGame.getGamePhase().toString());
         newGame.put("Scores", localGame.getScores());
         newGame.put("Players", localGame.getPlayers());
+        newGame.put("RoundsLeft", 3);
         try {
             newGame.save();
         } catch (ParseException e) {
