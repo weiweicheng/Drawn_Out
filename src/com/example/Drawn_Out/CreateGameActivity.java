@@ -25,6 +25,8 @@ public class CreateGameActivity extends Activity {
     private TextView minPlayerMessage;
     private TextView gameIdMessage;
     private Game localGame;
+    private Handler handler = new Handler();
+    private Runnable runnable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -98,8 +100,7 @@ public class CreateGameActivity extends Activity {
         startGameButton = (Button) findViewById(R.id.startGameButton);
         minPlayerMessage = (TextView) findViewById(R.id.minPlayerMessage);
 
-        Handler handler = new Handler();
-        Runnable runnable = new Runnable() {
+        runnable = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -130,12 +131,12 @@ public class CreateGameActivity extends Activity {
         Intent intent = new Intent(this, InGameActivity.class);
         intent.putExtra("gameId", localGame.getId());
         intent.putExtra("username", username);
-
+        handler.removeCallbacks(runnable);
         try {
             ParseQuery<ParseObject> query = ParseQuery.getQuery("Game");
             query.whereEqualTo("Id", localGame.getId());
             ParseObject game = query.find().get(0);
-            game.put("GamePhase", localGame.getGamePhase().toString());
+            game.put("GamePhase", "DRAWING");
             game.save();
         } catch (ParseException e) {
             Log.e("CreateGameActivity", e.getMessage());
