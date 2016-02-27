@@ -48,7 +48,7 @@ public class JoinGameActivity extends Activity{
                 appendedNum++;
             }
             game.add("Players", username);
-            game.increment("NumOfPlayersWaiting");
+            game.add("Scores", 0);
             game.save();
             msg.setText("Waiting for host to start the game...");
             button.setEnabled(false);

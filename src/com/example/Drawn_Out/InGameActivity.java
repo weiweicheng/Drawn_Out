@@ -1,6 +1,7 @@
 package com.example.Drawn_Out;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -24,7 +25,12 @@ public class InGameActivity extends Activity {
     private String gameId = "test";
     private String username = "Test Player 1";
     private TextView waitingMessage;
-    private TextView countdownTimer;
+    private TextView countdownTimerText;
+    private Handler handler;
+    private Runnable runnable;
+    private Runnable alertDialogRunnable;
+    private CountDownTimer countDownTimer;
+    private AlertDialog alertDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,21 +40,71 @@ public class InGameActivity extends Activity {
             gameId = extras.getString("gameId");
             username = extras.getString("username");
         }
-
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        handler = new Handler();
+        init();
+    }
 
-        Handler handler = new Handler();
-        Runnable runnable = new Runnable() {
+    private void init() {
+        runnable = new Runnable() {
             @Override
             public void run() {
-                play();
+                String gamePhase = getGamePhase();
+                if(username.equals(getCurrentArtist())) {
+                    if("DRAWING".equals(gamePhase)) {
+                        setContentView(R.layout.drawing);
+                        countdownTimerText = (TextView) findViewById(R.id.drawingTimer);
+                        ((TextView) findViewById(R.id.currentWord)).setText("Your word is: " + getCurrentWord());
+                        countDownTimer = new CountDownTimer(60000, 1000) {
+                            public void onTick(long millisUntilFinished) {
+                                countdownTimerText.setText("seconds remaining: " + millisUntilFinished / 1000);
+                            }
+                            public void onFinish() {
+                                countdownTimerText.setText("seconds remaining: 0");
+                                submitDrawing(findViewById(R.id.button3));
+                            }
+                        };
+                        countDownTimer.start();
+                    } else if("GUESSING".equals(gamePhase)) {
+                        setContentView(R.layout.waiting);
+                        waitingMessage = (TextView) findViewById(R.id.waitingMessage);
+                        waitingMessage.setText("Waiting for players to finish guessing.");
+                        handler.postDelayed(this, 1000);
+                    }
+                } else {
+                    if("DRAWING".equals(gamePhase)) {
+                        setContentView(R.layout.waiting);
+                        waitingMessage = (TextView) findViewById(R.id.waitingMessage);
+                        waitingMessage.setText("Waiting on " + getCurrentArtist() + " to finish drawing.");
+                        handler.postDelayed(this, 1000);
+                    } else if("GUESSING".equals(gamePhase)) {
+                        setContentView(R.layout.guessing);
+                        ImageView currentPicture = (ImageView) findViewById(R.id.currentPicture);
+                        byte[] data = getCurrentPicture();
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                        currentPicture.setImageBitmap(bitmap);
+                        countdownTimerText = (TextView) findViewById(R.id.guessingTimer) ;
+                        countDownTimer = new CountDownTimer(30000, 1000) {
+                            public void onTick(long millisUntilFinished) {
+                                countdownTimerText.setText("Seconds remaining: " + millisUntilFinished / 1000);
+                            }
+                            public void onFinish() {
+                                countdownTimerText.setText("Seconds remaining: 0");
+                                submitGuess(findViewById(R.id.userGuess));
+                                handler.postDelayed(InGameActivity.this.runnable, 1000);
+                            }
+                        };
+                        countDownTimer.start();
+                    }
+                }
             }
         };
         handler.postDelayed(runnable, 1000);
     }
 
     public void submitDrawing(View view) {
+        countDownTimer.cancel();
         DrawView drawView = (DrawView) view.getRootView().findViewById(R.id.DrawView);
         Bitmap drawing = drawView.getBitmap();
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -63,69 +119,40 @@ public class InGameActivity extends Activity {
             ParseObject cloudGame = query.find().get(0);
             ParseFile file = new ParseFile(data);
             cloudGame.put("CurrentPicture", file);
+            cloudGame.put("GamePhase", "GUESSING");
             cloudGame.save();
         } catch (ParseException ex) {
             Log.e("InGameActivity", ex.getMessage());
         }
+        handler.postDelayed(InGameActivity.this.runnable, 1000);
     }
 
     public void submitGuess(View view) {
-        String userGuess = ((EditText) findViewById(R.id.userGuess)).toString();
-        if (userGuess.equals(getCurrentWord())) {
-            incrementUsersWaiting();
-            //TODO: Show +1 score
+        countDownTimer.cancel();
+        String userGuess = ((EditText) findViewById(R.id.userGuess)).getText().toString();
+        alertDialog = new AlertDialog.Builder(InGameActivity.this).create();
+        Log.i("InGameActivity", "Userguess: " + userGuess);
+        Log.i("InGameActivity", "CurrentWord: " + getCurrentWord());
+        if (userGuess.toLowerCase().equals(getCurrentWord().toLowerCase())) {
+            incrementUsersScore();
+            alertDialog.setMessage("Correct! Waiting for other players to finish");
+            alertDialog.setCancelable(true);
+            alertDialog.show();
         } else {
-            //TODO: Show false
+            alertDialog.setMessage("False! Waiting for other players to finish");
+            alertDialog.setCancelable(true);
+            alertDialog.show();
         }
+
+        alertDialogRunnable = new Runnable() {
+            @Override
+            public void run() {
+                alertDialog.dismiss();
+            }
+        };
+
         incrementUsersWaiting();
         checkIfRoundIsDone();
-    }
-
-    private void play() {
-        String gamePhase = getGamePhase();
-        if(username.equals(getCurrentArtist())) {
-            if("DRAWING".equals(gamePhase)) {
-                setContentView(R.layout.drawing);
-                countdownTimer = (TextView) findViewById(R.id.drawingTimer);
-                new CountDownTimer(60000, 1000) {
-                    public void onTick(long millisUntilFinished) {
-                        countdownTimer.setText("seconds remaining: " + millisUntilFinished / 1000);
-                    }
-
-                    public void onFinish() {
-                        countdownTimer.setText("seconds remaining: 0");
-                        submitDrawing(findViewById(R.id.button3));
-                    }
-                }.start();
-                changePhase("GUESSING");
-            } else if("GUESSING".equals(gamePhase)) {
-                setContentView(R.layout.waiting);
-                waitingMessage.setText("Waiting for players to finish guessing.");
-            }
-        } else {
-            if("DRAWING".equals(gamePhase)) {
-                setContentView(R.layout.waiting);
-                waitingMessage = (TextView) findViewById(R.id.waitingMessage);
-                waitingMessage.setText("Waiting on " + getCurrentArtist() + " to finish drawing.");
-            } else if("GUESSING".equals(gamePhase)) {
-                setContentView(R.layout.guessing);
-                ImageView currentPicture = (ImageView) findViewById(R.id.currentPicture);
-                byte[] data = getCurrentPicture();
-                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                currentPicture.setImageBitmap(bitmap);
-                countdownTimer = (TextView) findViewById(R.id.guessingTimer) ;
-                new CountDownTimer(20000, 1000) {
-
-                    public void onTick(long millisUntilFinished) {
-                        countdownTimer.setText("Seconds remaining: " + millisUntilFinished / 1000);
-                    }
-                    public void onFinish() {
-                        countdownTimer.setText("Seconds remaining: 0");
-                        submitGuess(findViewById(R.id.userGuess));
-                    }
-                }.start();
-            }
-        }
     }
 
     private byte[] getCurrentPicture() {
@@ -147,7 +174,6 @@ public class InGameActivity extends Activity {
         try {
             ParseObject cloudGame = query.find().get(0);
             return (String) cloudGame.get("CurrentWord");
-
         }  catch (ParseException ex) {
             Log.e("InGameActivity", ex.getMessage());
         } catch (IndexOutOfBoundsException ex) {
@@ -229,6 +255,7 @@ public class InGameActivity extends Activity {
             List<String> players = cloudGame.getList("Players");
             Integer numOfPlayersWaiting = (Integer) cloudGame.get("NumOfPlayersWaiting");
             if (numOfPlayersWaiting.equals(players.size())) {
+                handler.postDelayed(alertDialogRunnable, 1000);
                 HashMap<String,String> params = new HashMap<>();
                 params.put("Id",gameId);
                 ParseCloud.callFunction("updateCurrentWord", params);
@@ -237,6 +264,7 @@ public class InGameActivity extends Activity {
                     showScoreBoard();
                 } else {
                     cloudGame.put("RoundsLeft", (Integer) cloudGame.get("RoundsLeft") - 1);
+                    cloudGame.put("NumOfPlayersWinning", 1);
                     cloudGame.put("GamePhase", "DRAWING");
                 }
 
