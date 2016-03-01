@@ -13,9 +13,11 @@
             android:id="@+id/button3" android:layout_gravity="right"/>
     <LinearLayout android:orientation="horizontal"
                   android:layout_width="wrap_content"
-                  android:layout_height="wrap_content">
+                  android:layout_height="wrap_content"
+                  android:background="#FFFFFF">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                  android:id="@+id/drawingTimer"/>
+                  android:id="@+id/drawingTimer"
+                  android:layout_marginBottom="5dp"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:id="@+id/currentWord"/>
     </LinearLayout>
