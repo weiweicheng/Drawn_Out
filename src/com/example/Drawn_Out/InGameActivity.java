@@ -78,6 +78,7 @@ public class InGameActivity extends Activity {
                             }
                             public void onFinish() {
                                 countdownTimerText.setText("seconds remaining: 0");
+                                ((TextView) findViewById(R.id.guessSubmit)).setEnabled(false);
                                 submitDrawing(findViewById(R.id.button3));
                             }
                         };
@@ -107,6 +108,7 @@ public class InGameActivity extends Activity {
                             }
                             public void onFinish() {
                                 countdownTimerText.setText("Seconds remaining: 0");
+                                ((TextView) findViewById(R.id.guessSubmit)).setEnabled(false);
                                 submitGuess(findViewById(R.id.userGuess));
                             }
                         };
@@ -274,7 +276,7 @@ public class InGameActivity extends Activity {
             ParseObject cloudGame = query.find().get(0);
             List<String> players = cloudGame.getList("Players");
             Integer numOfPlayersWaiting = (Integer) cloudGame.get("NumOfPlayersWaiting");
-            if (numOfPlayersWaiting.equals(players.size())) {
+            if (numOfPlayersWaiting >= (players.size())) {
                 handler.postDelayed(alertDialogRunnable, 1000);
                 HashMap<String,String> params = new HashMap<>();
                 params.put("Id",gameId);
